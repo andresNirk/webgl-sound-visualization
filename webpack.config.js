@@ -9,12 +9,12 @@ const TITLE = "Sound visualizations";
 
 const plugins = [
         // create an html page
-		new HtmlWebpackPlugin({
-			title: TITLE,
-			filename: 'index.html',
-			template: 'src/index.html'
-		}),
-		//copy the assets (with no css compilation)
+        new HtmlWebpackPlugin({
+            title: TITLE,
+            filename: 'index.html',
+            template: 'src/index.html'
+        }),
+        //copy the assets (with no css compilation)
         new CopyWebpackPlugin([
             {from:'src/textures',to:'textures'},
             {from:'src/css',to:'css'},
@@ -25,33 +25,27 @@ const plugins = [
 ];
 
 module.exports = {
-	target: 'web',
-	devtool: 'source-map',
-	entry: './src/application.js',
-	output: {
-		path: PUBLIC,
-		filename: 'bundle.js',
-		publicPath: ''
-	},
-	plugins: plugins,
-	module: {
-		rules: [
-			{
-				test: /\.js$/,
-				include: [
-					path.resolve(__dirname, 'src')
-				],
-				loader: 'babel-loader',
-				query: {
-					compact: true,
-					presets: [
-						['es2015', {modules: false}]
-					]
-				}
-			}
-		]
-	},
-	performance: {
-		hints: false
-	}
+    target: 'web',
+    devtool: 'source-map',
+    entry: './index.js',
+    output: {
+        path: PUBLIC,
+        filename: 'bundle.js',
+        publicPath: ''
+    },
+    plugins,
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/,
+            }
+        ]
+    },
+    resolve: {
+        alias: {
+            src: path.resolve(__dirname, "./src"),
+        },
+    },
 };

@@ -10,7 +10,7 @@ export default class CollectionGeometries{
 
         let widthSegments = 32;
         let heightSegments = 32;
-        let radius = 5;
+        let radius = 1;
         let geometries = {
             "sphere": new SphereGeometry(radius, widthSegments, heightSegments),
             "box": new BoxGeometry( radius, radius, radius, 4, 4, 4 ),
