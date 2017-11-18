@@ -4,6 +4,12 @@ This is a course project for [Computer Graphics course at University of Tartu](h
 
 Bootstrapped from [https://github.com/edap/boilerplate-threejs-es6-webpack](https://github.com/edap/boilerplate-threejs-es6-webpack).
 
+## Starting dev server
+* Install node and npm/yarn
+* In the project folder run `npm install` or `yarn install`
+* Run `npm start` or `yarn start`
+* Open localhost:8000
+
 
 
 

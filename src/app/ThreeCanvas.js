@@ -15,7 +15,7 @@ const materials = new CollectionMaterials();
 const geometries = new CollectionGeometries();
 const MIC = "mic";
 const MUSIC = "music";
-const SONG_NAME = "03 Losing Sl eep.mp3";
+const SONG_NAME = "03 Losing Sleep.mp3";
 
 export default class ThreeCanvas {
     constructor() {
@@ -70,7 +70,7 @@ export default class ThreeCanvas {
     updateBars = () => {
         const fft = this.currentSource.waveform.getValue();
         fft.forEach((v, i) => {
-            this.barsGeometry[i].scale.set(1, 100 - v, 1);
+            this.barsGeometry[i].scale.set(1, Math.min(1, -(v + 140) * 2), 1);
         });
     }
 
