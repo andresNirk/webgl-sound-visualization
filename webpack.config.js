@@ -5,11 +5,12 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack');
-const PUBLIC = __dirname + "/docs";
+const PUBLIC = __dirname + "/web";
 const TITLE = "Sound visualizations";
 
 
 const plugins = [
+        // COmment this in for prod building
         // new webpack.DefinePlugin({
         //     'process.env': {
         //         'NODE_ENV': JSON.stringify('production')
@@ -29,7 +30,7 @@ const plugins = [
             {from:'src/sounds', to: 'sounds'}
         ]),
         // clean the output folder
-        new CleanWebpackPlugin(['docs']),
+        new CleanWebpackPlugin(['web']),
 ];
 
 module.exports = {
