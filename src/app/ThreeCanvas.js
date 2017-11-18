@@ -2,6 +2,7 @@
 import Tone from "tone";
 import * as THREE from "three";
 import Stats from "stats.js";
+import WSVMath from "src/util/WSVMath";
 import CollectionGeometries from "../geometries.js";
 import CollectionMaterials from "../materials.js";
 
@@ -16,10 +17,12 @@ const geometries = new CollectionGeometries();
 const MIC = "mic";
 const MUSIC = "music";
 const SONG_NAME = "03 Losing Sleep.mp3";
+const FFT_SIZE = 4096;
 
 export default class ThreeCanvas {
     constructor() {
         window.TC = this;
+        window.WSVMath = WSVMath;
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
         camera.position.z = 200;
@@ -51,7 +54,7 @@ export default class ThreeCanvas {
         this.constructSources();
         this.setMicOrMusic(MIC);
 
-        this.setBars(64);
+        this.setBars(128, true);
 
         this.addStats(debug);
         this.render();
@@ -69,8 +72,8 @@ export default class ThreeCanvas {
 
     updateBars = () => {
         const fft = this.currentSource.waveform.getValue();
-        fft.forEach((v, i) => {
-            this.barsGeometry[i].scale.set(1, Math.min(1, -(v + 140) * 2), 1);
+        this.barsGeometry.forEach((bar, i) => {
+            bar.scale.set(1, Math.min(1, -(fft[this.fftIndexes[i]] + 140) * 2), 1);
         });
     }
 
@@ -80,25 +83,47 @@ export default class ThreeCanvas {
         }
     }
 
-    setBars(nr) {
+    setBars(nr, logarithmic = false) {
         this.barsGeometry.forEach(bar => {
             scene.remove(bar);
         });
         this.bars = nr;
         this.barsGeometry = [];
+        this.fftIndexes = [];
         const hw = nr / 2;
         for (let i = 0; i < nr; i += 1) {
             const bar = new THREE.Mesh(geometries.box, materials.phong);
             bar.position.set((i - hw) * 3, 0, 0);
             this.barsGeometry.push(bar);
             scene.add(bar);
+            const logi = Math.round(WSVMath.lin2log(i + 1, 1, nr, 1, FFT_SIZE));
+            if (i + 1 <= logi && logarithmic) {
+                this.fftIndexes.push(logi);
+            } else {
+                this.fftIndexes.push(i + 1);
+            }
         }
-        const micWaveform = new Tone.FFT(nr);
-        const musicWaveform = new Tone.FFT(nr);
+        console.log("logarithmic scale", logarithmic);
+        const micWaveform = new Tone.FFT(FFT_SIZE);
+        const musicWaveform = new Tone.FFT(FFT_SIZE);
         this.sources[MIC].waveform = micWaveform;
         this.sources[MUSIC].waveform = musicWaveform;
         this.sources[MIC].node.connect(micWaveform);
         this.sources[MUSIC].node.connect(musicWaveform);
+    }
+
+    rebuildFftIndex = (logarithmic) => {
+        console.log("logarithmic scale", logarithmic);
+        const indexes = [];
+        for (let i = 0; i < this.bars; i += 1) {
+            const logi = Math.round(WSVMath.lin2log(i + 1, 1, this.bars, 1, FFT_SIZE));
+            if (i + 1 <= logi && logarithmic) {
+                indexes.push(logi);
+            } else {
+                indexes.push(i + 1);
+            }
+        }
+        this.fftIndexes = indexes;
     }
 
     play = () => {
@@ -149,6 +174,7 @@ export default class ThreeCanvas {
 
     bars = 0;
     barsGeometry = [];
+    fftIndexes = [];
     controls = null;
     currentSource = null;
     sources = {};

@@ -21,7 +21,8 @@ export default class App extends Component {
                 onPlay={this.onPlay}
                 onStop={this.onStop}
                 autoRotateChanged={this.onAutoRotateChanged}
-                onMicOrMusicChange={this.onMicOrMusicChange}
+                onMicOrMusicChanged={this.onMicOrMusicChanged}
+                onLogarithmicChanged={this.onLogarithmicChanged}
             />
         );
     }
@@ -40,8 +41,12 @@ export default class App extends Component {
         this.tcanvas.stop();
     }
 
-    onMicOrMusicChange = (micOrMusic) => {
+    onMicOrMusicChanged = (micOrMusic) => {
         this.setState({ micOrMusic });
         this.tcanvas.setMicOrMusic(micOrMusic);
+    }
+
+    onLogarithmicChanged = (logarithmic) => {
+        this.tcanvas.rebuildFftIndex(logarithmic);
     }
 }

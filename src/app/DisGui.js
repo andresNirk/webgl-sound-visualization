@@ -7,7 +7,8 @@ const DisGui = ({
     autoRotateChanged,
     onPlay,
     onStop,
-    onMicOrMusicChange,
+    onMicOrMusicChanged,
+    onLogarithmicChanged,
 }) => {
     // <dg.Text label="Text" value="Hello world!"/>
     // <dg.Number label="Number" value={65536}/>
@@ -28,8 +29,9 @@ const DisGui = ({
     return (
         <dg.GUI>
             <dg.Checkbox label="Auto rotate" checked onChange={autoRotateChanged}/>
+            <dg.Checkbox label="Logarithmic scale" checked onChange={onLogarithmicChanged}/>
             { !playing ? <dg.Button label="Play" onClick={onPlay}/> : <dg.Button label="Stop" onClick={onStop}/>}
-            { playing ? null : <dg.Select value={micOrMusic} label="Mic or music" options={["mic", "music"]} onChange={onMicOrMusicChange}/> }
+            { playing ? null : <dg.Select value={micOrMusic} label="Mic or music" options={["mic", "music"]} onChange={onMicOrMusicChanged}/> }
         </dg.GUI>
     );
 };
