@@ -10,7 +10,7 @@ const TITLE = "Sound visualizations";
 
 
 const plugins = [
-        // COmment this in for prod building
+        // Comment this in for prod building
         // new webpack.DefinePlugin({
         //     'process.env': {
         //         'NODE_ENV': JSON.stringify('production')
@@ -27,7 +27,7 @@ const plugins = [
         new CopyWebpackPlugin([
             {from:'src/textures',to:'textures'},
             {from:'src/css',to:'css'},
-            {from:'src/sounds', to: 'sounds'}
+            {from:'songs', to: 'songs'}
         ]),
         // clean the output folder
         new CleanWebpackPlugin(['web']),
