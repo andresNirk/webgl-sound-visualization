@@ -27,7 +27,6 @@ const plugins = [
         new CopyWebpackPlugin([
             {from:'src/textures',to:'textures'},
             {from:'src/css',to:'css'},
-            {from:'songs', to: 'songs'}
         ]),
         // clean the output folder
         new CleanWebpackPlugin(['web']),

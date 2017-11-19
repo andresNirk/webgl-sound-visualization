@@ -145,7 +145,7 @@ export default class ThreeCanvas {
     }
 
     loadSong = (name, fileName) => {
-        return this.sources[MUSIC].node.load(`../songs/${fileName}`)
+        return this.sources[MUSIC].node.load(`https://firebasestorage.googleapis.com/v0/b/protor-3203e.appspot.com/o/visualizer%2Fsongs%2F${fileName}?alt=media`)
             .then(() => {
                 console.log(`Current song set to ${name} : ${fileName}`);
                 return Promise.resolve();
