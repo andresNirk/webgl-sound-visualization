@@ -3,29 +3,7 @@
 # Ignore everything by default:
 #-----------------------------------------------------------------------------#
 
-/*
-/*/
-
-
-#-----------------------------------------------------------------------------#
-# But allow those files and folders:
-#-----------------------------------------------------------------------------#
-
-!.editorconfig
-!.eslintrc.json
-!.gitattributes
-!.gitignore
-!README.md
-!/src
-!/package.json
-!/webpack.config.js
-!/docs
-!index.js
-
-
-#-----------------------------------------------------------------------------#
-# But make sure to ignore those regardless:
-#-----------------------------------------------------------------------------#
+/node_modules
 
 .DS_Store
 Thumbs.db
