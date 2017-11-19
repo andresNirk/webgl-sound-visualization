@@ -6,6 +6,8 @@ import WSVMath from "src/util/WSVMath";
 import CollectionGeometries from "../geometries.js";
 import CollectionMaterials from "../materials.js";
 
+// MUSIC FROM https://www.bensound.com
+
 const debug = true;
 const scene = new THREE.Scene();
 const OrbitControls = require("three-orbit-controls")(THREE);
@@ -142,14 +144,22 @@ export default class ThreeCanvas {
         this.currentSource = this.sources[micOrMusic];
     }
 
+    loadSong = (name, fileName) => {
+        return this.sources[MUSIC].node.load(`../songs/${fileName}`)
+            .then(() => {
+                console.log(`Current song set to ${name} : ${fileName}`);
+                return Promise.resolve();
+            })
+            .catch(() => {
+                return Promise.reject(new Error(`Could not load the song ${name}`));
+            });
+    }
+
     constructSources = () => {
         const playerSource = {};
         const micSource = {};
         window.Tone = Tone;
-        const player = new Tone.Player({}).toMaster();
-        player.load(`../songs/${SONG_NAME}`)
-            .catch(() => {});
-        playerSource.node = player;
+        playerSource.node = new Tone.Player({}).toMaster();
         playerSource.name = MUSIC;
         playerSource.play = () => playerSource.node.start();
         playerSource.stop = () => playerSource.node.stop();

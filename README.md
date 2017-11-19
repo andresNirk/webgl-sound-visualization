@@ -4,6 +4,8 @@ This is a course project for [Computer Graphics course at University of Tartu](h
 
 Bootstrapped from [https://github.com/edap/boilerplate-threejs-es6-webpack](https://github.com/edap/boilerplate-threejs-es6-webpack).
 
+Music from [bensound.com](https://www.bensound.com)
+
 ## Starting dev server
 * Install node and npm/yarn
 * In the project folder run `npm install` or `yarn install`

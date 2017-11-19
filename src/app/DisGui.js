@@ -3,12 +3,16 @@ import * as dg from "dis-gui";
 
 const DisGui = ({
     playing,
+    loading,
     micOrMusic,
+    songNames,
+    currentSong,
     autoRotateChanged,
     onPlay,
     onStop,
     onMicOrMusicChanged,
     onLogarithmicChanged,
+    onLoadSong,
 }) => {
     // <dg.Text label="Text" value="Hello world!"/>
     // <dg.Number label="Number" value={65536}/>
@@ -26,12 +30,20 @@ const DisGui = ({
     // </dg.Folder>
     // <dg.Color label="Color" expanded red={0} green={128} blue={255}/>
     // <dg.Gradient label="Gradient" expanded/>
+    const isMic = () => "mic" === micOrMusic;
+    let playButton = <dg.Button label="Play" onClick={onPlay}/>;
+    if (playing) {
+        playButton = <dg.Button label="Stop" onClick={onStop}/>;
+    } if (!isMic() && loading) {
+        playButton = <dg.Button label="Loading"/>;
+    }
     return (
         <dg.GUI>
             <dg.Checkbox label="Auto rotate" checked onChange={autoRotateChanged}/>
             <dg.Checkbox label="Logarithmic scale" checked onChange={onLogarithmicChanged}/>
-            { !playing ? <dg.Button label="Play" onClick={onPlay}/> : <dg.Button label="Stop" onClick={onStop}/>}
+            { playButton }
             { playing ? null : <dg.Select value={micOrMusic} label="Mic or music" options={["mic", "music"]} onChange={onMicOrMusicChanged}/> }
+            { "mic" === micOrMusic || playing ? null : <dg.Select value={currentSong.name} label="Select song" options={songNames} onChange={onLoadSong}/> }
         </dg.GUI>
     );
 };
