@@ -6,6 +6,8 @@ import WSVMath from "src/util/WSVMath";
 import CollectionGeometries from "../geometries.js";
 import CollectionMaterials from "../materials.js";
 
+import ParticleEmitter from "src/app/ParticleEmitter";
+
 // MUSIC FROM https://www.bensound.com
 
 const debug = true;
@@ -20,6 +22,9 @@ const MIC = "mic";
 const MUSIC = "music";
 const SONG_NAME = "03 Losing Sleep.mp3";
 const FFT_SIZE = 4096;
+const clock = new THREE.Clock();
+
+const particleEmitter = new ParticleEmitter();
 
 export default class ThreeCanvas {
     constructor() {
@@ -44,6 +49,9 @@ export default class ThreeCanvas {
 
         const axisHelper = new THREE.AxisHelper(50);
         // scene.add( axisHelper );
+        
+        particleEmitter.init(renderer);
+        scene.add(particleEmitter.particles);
 
         window.addEventListener("resize", () => {
             const WIDTH = window.innerWidth;
@@ -64,10 +72,16 @@ export default class ThreeCanvas {
 
 
     render = () => {
+        var delta = clock.getDelta();
+        var time = clock.getElapsedTime();
+        
         stats.begin();
+        
         this.updateBars();
         this.controls.update();
+        particleEmitter.calculateNextFrame( time % 10000, delta, renderer );
         renderer.render(scene, camera);
+
         stats.end();
         requestAnimationFrame(this.render);
     }
@@ -77,6 +91,7 @@ export default class ThreeCanvas {
         this.barsGeometry.forEach((bar, i) => {
             bar.scale.set(1, Math.min(1, -(fft[this.fftIndexes[i]] + 140) * 2), 1);
         });
+        particleEmitter.updateFFTs(fft);
     }
 
     addStats(debugging) {
