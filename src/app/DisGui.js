@@ -1,18 +1,23 @@
 import React from "react";
 import * as dg from "dis-gui";
+import BarsViz from "src/app/BarsViz";
+import AudioSource      from "src/app/AudioSource";
 
 const DisGui = ({
     playing,
     loading,
-    micOrMusic,
+    currentSource,
+    currentVisualization,
+    visualizations,
     songNames,
     currentSong,
     autoRotateChanged,
     onPlay,
     onStop,
-    onMicOrMusicChanged,
+    onSourceChanged,
     onLogarithmicChanged,
     onLoadSong,
+    onVisualizationChanged,
 }) => {
     // <dg.Text label="Text" value="Hello world!"/>
     // <dg.Number label="Number" value={65536}/>
@@ -30,20 +35,34 @@ const DisGui = ({
     // </dg.Folder>
     // <dg.Color label="Color" expanded red={0} green={128} blue={255}/>
     // <dg.Gradient label="Gradient" expanded/>
-    const isMic = () => "mic" === micOrMusic;
+    const isMic = AudioSource.MIC === currentSource.name;
+    const isBars = BarsViz.TYPE === currentVisualization.type;
+
     let playButton = <dg.Button label="Play" onClick={onPlay}/>;
+    let micMusic = <dg.Select value={currentSource.name} label="Mic or music" options={["mic", "music"]} onChange={onSourceChanged}/>;
+    let song = <dg.Select value={currentSong.name} label="Select song" options={songNames} onChange={onLoadSong}/>;
+
     if (playing) {
         playButton = <dg.Button label="Stop" onClick={onStop}/>;
-    } if (!isMic() && loading) {
+        micMusic = null;
+    }
+    if (!isMic && loading) {
         playButton = <dg.Button label="Loading"/>;
     }
+    if (isMic || playing) {
+        song = null;
+    }
+
+    const logScale = isBars ? <dg.Checkbox label="Logarithmic scale" checked onChange={onLogarithmicChanged}/> : null;
+
     return (
         <dg.GUI>
             <dg.Checkbox label="Auto rotate" checked onChange={autoRotateChanged}/>
-            <dg.Checkbox label="Logarithmic scale" checked onChange={onLogarithmicChanged}/>
+            <dg.Select value={currentVisualization.name} label="Visualization" options={visualizations} onChange={onVisualizationChanged}/>
             { playButton }
-            { playing ? null : <dg.Select value={micOrMusic} label="Mic or music" options={["mic", "music"]} onChange={onMicOrMusicChanged}/> }
-            { "mic" === micOrMusic || playing ? null : <dg.Select value={currentSong.name} label="Select song" options={songNames} onChange={onLoadSong}/> }
+            { logScale }
+            { micMusic }
+            { song }
         </dg.GUI>
     );
 };

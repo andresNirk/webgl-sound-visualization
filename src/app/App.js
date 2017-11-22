@@ -1,59 +1,47 @@
 import React, { Component } from "react";
-import DisGui from "src/app/DisGui";
-import ThreeCanvas from "src/app/ThreeCanvas";
+import DisGui           from "src/app/DisGui";
+import ThreeCanvas      from "src/app/ThreeCanvas";
+import AudioSource      from "src/app/AudioSource";
 
-const songs = [
-    {
-        name: "Summer",
-        fileName: "bensound-summer.mp3",
-    },
-    {
-        name: "Dubstep",
-        fileName: "bensound-dubstep.mp3",
-    },
-    {
-        name: "House",
-        fileName: "bensound-house.mp3",
-    },
-    {
-        name: "Moose",
-        fileName: "bensound-moose.mp3",
-    },
-    {
-        name: "PopDance",
-        fileName: "bensound-popdance.mp3",
-    },
-];
+const audioSource = new AudioSource();
 
 export default class App extends Component {
     constructor(props) {
         super(props);
-        this.tcanvas = new ThreeCanvas();
-        this.tcanvas.loadSong(this.state.currentSong.name, this.state.currentSong.fileName);
-    }
+        this.tcanvas = new ThreeCanvas(audioSource);
 
-    state = {
-        loading: false,
-        playing: false,
-        micOrMusic: "mic",
-        currentSong: songs[0],
+        const defaultSong = audioSource.firstSong();
+        audioSource.loadSong(defaultSong);
+
+        this.state = {
+            loading: false,
+            playing: false,
+            currentSource: audioSource.currentSource,
+            currentSong: defaultSong,
+            currentVisualization: this.tcanvas.currentViz,
+        };
     }
 
     render() {
         return (
-            <DisGui
-                playing={this.state.playing}
-                loading={this.state.loading}
-                micOrMusic={this.state.micOrMusic}
-                currentSong={this.state.currentSong}
-                songNames={songs.map(s => s.name)}
-                onPlay={this.onPlay}
-                onStop={this.onStop}
-                autoRotateChanged={this.onAutoRotateChanged}
-                onMicOrMusicChanged={this.onMicOrMusicChanged}
-                onLogarithmicChanged={this.onLogarithmicChanged}
-                onLoadSong={(name) => this.onLoadSong(name)}
-            />
+            <div>
+                <DisGui
+                    playing={this.state.playing}
+                    loading={this.state.loading}
+                    currentVisualization={this.state.currentVisualization}
+                    visualizations={this.tcanvas.getVizNames()}
+                    onVisualizationChanged={this.onVisualizationChanged}
+                    currentSource={this.state.currentSource}
+                    currentSong={this.state.currentSong}
+                    songNames={audioSource.getSongNames()}
+                    onPlay={this.onPlay}
+                    onStop={this.onStop}
+                    autoRotateChanged={this.onAutoRotateChanged}
+                    onSourceChanged={this.onSourceChanged}
+                    onLogarithmicChanged={this.onLogarithmicChanged}
+                    onLoadSong={(name) => this.onLoadSong(name)}
+                />
+            </div>
         );
     }
 
@@ -62,31 +50,37 @@ export default class App extends Component {
     }
 
     onPlay = () => {
-        const canPlay = this.tcanvas.play();
+        const canPlay = audioSource.play();
         this.setState({ playing: canPlay });
     }
 
     onStop = () => {
+        audioSource.stop();
         this.setState({ playing: false });
-        this.tcanvas.stop();
     }
 
-    onMicOrMusicChanged = (micOrMusic) => {
-        this.setState({ micOrMusic });
-        this.tcanvas.setMicOrMusic(micOrMusic);
+    onSourceChanged = (micOrMusic) => {
+        audioSource.setSource(micOrMusic);
+        this.setState({ currentSource: audioSource.currentSource });
     }
 
     onLogarithmicChanged = (logarithmic) => {
-        this.tcanvas.rebuildFftIndex(logarithmic);
+        const viz = this.state.currentVisualization;
+        viz.rebuildFftIndex && viz.rebuildFftIndex(logarithmic);
     }
 
-    onLoadSong(songName) {
-        const s = songs.find(song => song.name === songName);
+    onLoadSong = (songName) => {
+        const s = audioSource.getSong(songName);
         const lastSong = this.state.currentSong;
         this.setState({ currentSong: s });
         this.setState({ loading: true });
-        this.tcanvas.loadSong(s.name, s.fileName)
+        audioSource.loadSong(s)
             .then(() => this.setState({ loading: false }))
             .catch(() => this.setState({ loading: false, currentSong: lastSong }));
+    }
+
+    onVisualizationChanged = (vizName) => {
+        this.tcanvas.setVizByName(vizName);
+        this.setState({ currentVisualization: this.tcanvas.currentViz });
     }
 }

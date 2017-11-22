@@ -1,28 +1,33 @@
 import * as THREE from "three";
-import WSVMath from "src/util/WSVMath";
 
-import BasicVertexShader from "src/app/shaders/basic-vertex-shader.js"
-import BasicFragmentShader from "src/app/shaders/basic-fragment-shader.js"
+import BasicVertexShader from "src/app/shaders/basic-vertex-shader.js";
+import BasicFragmentShader from "src/app/shaders/basic-fragment-shader.js";
 
-import DataFragmentShader from "src/app/shaders/data-fragment-shader.js"
+import DataFragmentShader from "src/app/shaders/data-fragment-shader.js";
 
-import ParticleVertexShader from "src/app/shaders/particle-vertex-shader.js"
-import ParticleFragmentShader from "src/app/shaders/particle-fragment-shader.js"
+import ParticleVertexShader from "src/app/shaders/particle-vertex-shader.js";
+import ParticleFragmentShader from "src/app/shaders/particle-fragment-shader.js";
+
+const clock = new THREE.Clock();
 
 export default class ParticleEmitter {
-    constructor() {
-        
+    static TYPE = "particleEmitter";
+    static NAME = "Particle Emitter";
+
+    constructor(renderer) {
+        this.scene = new THREE.Scene();
+        this.renderer = renderer;
+        this.camera = new THREE.Camera();
+        this.name = ParticleEmitter.NAME;
+        this.type = ParticleEmitter.TYPE;
+
         // double buffering
         this.currentIndex = 0;
         this.dataTextures = [];
-        
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.Camera();
-        this.camera.position.z = 1;
-        
+
         this.dataTextures.push(this.createRenderTarget());
         this.dataTextures.push(this.createRenderTarget());
-        
+
         // simple passthrough, used for initializaion
         this.basicMaterial = new THREE.ShaderMaterial({
             vertexShader: BasicVertexShader.shader,
@@ -31,20 +36,36 @@ export default class ParticleEmitter {
                 texture: new THREE.Uniform(this.createStartTexture())
             }
         });
-        
+
         // data update mesh
         this.mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), this.basicMaterial );
         this.scene.add(this.mesh);
-        
+
         // actual particles
         this.particles = this.createParticles();
+        this.init();
     }
-    
+
+    onRender = (fftData) => {
+        const delta = clock.getDelta();
+        const time = clock.getElapsedTime();
+        this.calculateNextFrame(time % 10000, delta);
+        this.updateFFTs(fftData);
+    }
+
+    onAdd = (scene) => {
+        scene.add(this.particles);
+    }
+
+    onRemove = (scene) => {
+        scene.remove(this.particles);
+    }
+
     // initializes initial data texture state, consult createStartTexture()
-    init(renderer) {
-        this.render(renderer, this.basicMaterial, this.dataTextures[0]);
-        this.render(renderer, this.basicMaterial, this.dataTextures[1]);
-        
+    init() {
+        this.render(this.basicMaterial, this.dataTextures[0]);
+        this.render(this.basicMaterial, this.dataTextures[1]);
+
         //calculation shader
         this.dataMaterial = new THREE.ShaderMaterial({
             vertexShader: BasicVertexShader.shader,
@@ -58,7 +79,7 @@ export default class ParticleEmitter {
         });
         this.mesh.material = this.dataMaterial;
     }
-    
+
     getCurrentTarget() {
         return this.dataTextures[this.currentIndex];
     }
@@ -104,13 +125,13 @@ export default class ParticleEmitter {
         return new THREE.Points(particleGeometry, material);
     }
     
-    calculateNextFrame(time, deltaTime, renderer) {
+    calculateNextFrame(time, deltaTime) {
         this.dataMaterial.uniforms.time.value = time;
         this.dataMaterial.uniforms.time.needsUpdate = true;
         this.dataMaterial.uniforms.deltaTime.value = deltaTime;
         this.dataMaterial.uniforms.deltaTime.needsUpdate = true;
         
-        this.render(renderer, this.dataMaterial, this.getNextTarget());
+        this.render(this.dataMaterial, this.getNextTarget());
         this.swapTextures();
     }
     
@@ -132,9 +153,9 @@ export default class ParticleEmitter {
         this.particles.material.uniforms.fftTexture.needsUpdate = true;
     }
     
-    render(renderer, material, dst) {
+    render(material, dst) {
         this.mesh.material = material;
-        renderer.render(this.scene, this.camera, dst);
+        this.renderer.render(this.scene, this.camera, dst);
     }
     
     createRenderTarget() {
