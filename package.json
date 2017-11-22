@@ -6,7 +6,7 @@
   },
   "scripts": {
     "start": "webpack-dev-server --port 8000",
-    "build": "webpack"
+    "build": "webpack --config prod.webpack.config"
   },
   "devDependencies": {
     "babel-core": "^6.20.0",
