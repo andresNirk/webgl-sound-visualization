@@ -19,6 +19,9 @@ export default class ParticleEmitter {
         this.camera = new THREE.Camera();
         this.name = ParticleEmitter.NAME;
         this.type = ParticleEmitter.TYPE;
+        
+        this.particleTextureSize = 256;
+        this.particleAmount = this.particleTextureSize*this.particleTextureSize/4;
 
         this.visualization = CircleVisualization;
         
@@ -37,7 +40,8 @@ export default class ParticleEmitter {
             vertexShader: BasicVertexShader.shader,
             fragmentShader: BasicFragmentShader.shader,
             uniforms: {
-                texture: new THREE.Uniform(this.visualization.createStartTexture(256))
+                particleTextureSize: new THREE.Uniform(this.particleTextureSize),
+                texture: new THREE.Uniform(this.visualization.createStartTexture(this.particleTextureSize))
             }
         });
 
@@ -75,7 +79,8 @@ export default class ParticleEmitter {
             vertexShader: BasicVertexShader.shader,
             fragmentShader: this.visualization.dataFragmentShader,
             uniforms: {
-                texture: new THREE.Uniform(this.visualization.createStartTexture(256)),
+                particleTextureSize: new THREE.Uniform(this.particleTextureSize),
+                texture: new THREE.Uniform(this.visualization.createStartTexture(this.particleTextureSize)),
                 fftTexture: new THREE.Uniform(this.fftTexture),
                 time: new THREE.Uniform(0.0),
                 deltaTime: new THREE.Uniform(0.0)
@@ -99,16 +104,16 @@ export default class ParticleEmitter {
     
     createParticles() {
         var particleGeometry = new THREE.BufferGeometry();
-        var vertices = new Float32Array(256*256*3);
-        var dataTextureUV = new Float32Array(256*256*2);
-        for (var x = 0; x < 256; x++) {
-            for (var y = 0; y < 256; y++) {
-                vertices[(x*256+y)*3+0] = 0;
-                vertices[(x*256+y)*3+1] = 0;
-                vertices[(x*256+y)*3+2] = 0;
+        var vertices = new Float32Array(this.particleAmount*3);
+        var dataTextureUV = new Float32Array(this.particleAmount*2);
+        for (var x = 0; x < this.particleTextureSize; x++) {
+            for (var y = 0; y < this.particleTextureSize/4; y++) {
+                vertices[(y*this.particleTextureSize+x)*3+0] = 0;
+                vertices[(y*this.particleTextureSize+x)*3+1] = 0;
+                vertices[(y*this.particleTextureSize+x)*3+2] = 0;
                 
-                dataTextureUV[(x*256+y)*2+0] = (x+0.5)/256.0;
-                dataTextureUV[(x*256+y)*2+1] = (y+0.5)/256.0;
+                dataTextureUV[(y*this.particleTextureSize+x)*2+0] = (x+0.5)/this.particleTextureSize;
+                dataTextureUV[(y*this.particleTextureSize+x)*2+1] = (y+0.5)/this.particleTextureSize;
             }
         }
         particleGeometry.addAttribute('position', new THREE.BufferAttribute( vertices, 3 ));
@@ -152,7 +157,7 @@ export default class ParticleEmitter {
     }
     
     createRenderTarget() {
-        return new THREE.WebGLRenderTarget(256, 256, {
+        return new THREE.WebGLRenderTarget(this.particleTextureSize, this.particleTextureSize, {
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
             format: THREE.RGBAFormat,

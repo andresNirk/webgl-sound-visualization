@@ -1,19 +1,44 @@
 import * as THREE from "three";
 
 var dataFragmentShader = `
+uniform float particleTextureSize;
 uniform sampler2D texture;
 uniform sampler2D fftTexture;
 uniform float time;
 
 void main() {
-    vec2 uv = gl_FragCoord.xy / vec2(256.0, 256.0);
+    vec2 uv = gl_FragCoord.xy / vec2(particleTextureSize, particleTextureSize);
 
-    vec4 previousPosition = texture2D(texture, uv);
-    float fftValue = texture2D(fftTexture, vec2(previousPosition.a, 0.5) ).r;
+    if (uv.y < 0.25) {
 
-    previousPosition.y = fftValue*100.0;
+        vec4 previousPosition = texture2D(texture, uv);
+        float fftValue = texture2D(fftTexture, vec2(previousPosition.a, 0.5) ).r;
+        previousPosition.y = fftValue*100.0;
+        gl_FragColor = previousPosition;
 
-    gl_FragColor = previousPosition;
+    } else if (uv.y < 0.5) {
+        
+        vec4 previousPosition = texture2D(texture, uv+vec2(0.0, -0.25));
+        vec4 previousSpeed = texture2D(texture, uv);
+        
+        float fftValue = texture2D(fftTexture, vec2(previousPosition.a, 0.5) ).r;
+        
+        vec4 currentPosition = previousPosition;
+        currentPosition.y = fftValue*100.0;
+
+        gl_FragColor = currentPosition-previousPosition;
+
+    } else if (uv.y < 0.75) {
+
+        vec4 previousValue = texture2D(texture, uv);
+        gl_FragColor = previousValue;
+
+    } else {
+
+        vec4 previousValue = texture2D(texture, uv);
+        gl_FragColor = previousValue;
+
+    }
 }
 `;
 
@@ -27,12 +52,11 @@ varying vec3 pos;
 varying vec2 fragmentDataTextureUV;
 
 void main() {
-    vec4 v = texture2D(dataTexture, dataTextureUV );
-    vec3 modifiedPosition = v.xyz; // position +
+    vec4 dataPosition = texture2D(dataTexture, dataTextureUV );
 
-    float fftValue = 1.0-abs(texture2D(fftTexture, vec2(v.a, 0.5) ).r);
-    //modifiedPosition.x = modifiedPosition.x*fftValue;
-    //modifiedPosition.z = modifiedPosition.z*fftValue;
+    vec3 modifiedPosition = dataPosition.xyz; // position +
+
+    float fftValue = 1.0-abs(texture2D(fftTexture, vec2(dataPosition.a, 0.5) ).r);
 
     fragmentDataTextureUV = dataTextureUV;
     pos = position;
@@ -51,29 +75,56 @@ uniform sampler2D fftTexture;
 
 void main() {
     vec4 dataPosition = texture2D(dataTexture, fragmentDataTextureUV );
+    vec4 dataSpeed = texture2D(dataTexture, fragmentDataTextureUV+vec2(0.0, 0.25));
+    vec4 dataMisc = texture2D(dataTexture, fragmentDataTextureUV+vec2(0.0, 0.5));
+    vec4 dataMisc2 = texture2D(dataTexture, fragmentDataTextureUV+vec2(0.0, 0.75));
 
     float fftValue = abs(texture2D(fftTexture, vec2(dataPosition.a, 0.5) ).r);
 
-    gl_FragColor = vec4( abs(fftValue), pow(fftValue, 2.0), 1.0-abs(fftValue), 0.0);
+    gl_FragColor = vec4( abs(fftValue), abs(dataSpeed.y)/10.0, 1.0-abs(fftValue), 0.0);
+
 }
 `;
 
-function createStartTexture(particleAmount) {
-    var data = new Float32Array(particleAmount*particleAmount*4);
+function createStartTexture(particleTextureSize) {
+    var data = new Float32Array(particleTextureSize*particleTextureSize*4);
 
-    var i = 0;
-    for (; i < particleAmount*particleAmount; i++) {
-        var w = i / (particleAmount*particleAmount);
+    var particleAmount = particleTextureSize*particleTextureSize/4;
+    for (var i = 0; i < particleAmount; i++) {
+        var w = i / particleAmount;
         var angle = 6.28*w;
 
-        data[i*4+0] = Math.sin(angle)*100;
-        data[i*4+1] = 0;
-        data[i*4+2] = Math.cos(angle)*100;
-
-        data[i*4+3] = Math.pow(w, 3.0);
+        var j = i*4;
+        // position
+        data[j+0] = Math.sin(angle)*100;
+        data[j+1] = 0;
+        data[j+2] = Math.cos(angle)*100;
+        // fft
+        data[j+3] = Math.pow(w, 3.0);
+        
+        // speed
+        j += particleAmount*4;
+        data[j+0] = 0;
+        data[j+1] = 0;
+        data[j+2] = 0;
+        data[j+3] = 0;
+        
+        // misc
+        j += particleAmount*4;
+        data[j+0] = 0;
+        data[j+1] = 0;
+        data[j+2] = 0;
+        data[j+3] = 0;
+        
+        // misc2
+        j += particleAmount*4;
+        data[j+0] = 0;
+        data[j+1] = 0;
+        data[j+2] = 0;
+        data[j+3] = 0;
     }
 
-    var texture = new THREE.DataTexture( data, particleAmount, particleAmount, THREE.RGBAFormat, THREE.FloatType );
+    var texture = new THREE.DataTexture( data, particleTextureSize, particleTextureSize, THREE.RGBAFormat, THREE.FloatType );
     texture.needsUpdate = true;
 
     return texture;
