@@ -3,10 +3,7 @@ import * as THREE from "three";
 import BasicVertexShader from "src/app/shaders/basic-vertex-shader.js";
 import BasicFragmentShader from "src/app/shaders/basic-fragment-shader.js";
 
-import DataFragmentShader from "src/app/shaders/data-fragment-shader.js";
-
-import ParticleVertexShader from "src/app/shaders/particle-vertex-shader.js";
-import ParticleFragmentShader from "src/app/shaders/particle-fragment-shader.js";
+import CircleVisualization from "src/app/shaders/circle-visualization.js";
 
 const clock = new THREE.Clock();
 
@@ -15,12 +12,16 @@ export default class ParticleEmitter {
     static NAME = "Particle Emitter";
 
     constructor(renderer) {
+        
+        // render setup
         this.scene = new THREE.Scene();
         this.renderer = renderer;
         this.camera = new THREE.Camera();
         this.name = ParticleEmitter.NAME;
         this.type = ParticleEmitter.TYPE;
 
+        this.visualization = CircleVisualization;
+        
         // double buffering
         this.currentIndex = 0;
         this.dataTextures = [];
@@ -28,12 +29,15 @@ export default class ParticleEmitter {
         this.dataTextures.push(this.createRenderTarget());
         this.dataTextures.push(this.createRenderTarget());
 
+        // fft
+        this.fftTexture = this.createStartFftTexture();
+        
         // simple passthrough, used for initializaion
         this.basicMaterial = new THREE.ShaderMaterial({
             vertexShader: BasicVertexShader.shader,
             fragmentShader: BasicFragmentShader.shader,
             uniforms: {
-                texture: new THREE.Uniform(this.createStartTexture())
+                texture: new THREE.Uniform(this.visualization.createStartTexture(256))
             }
         });
 
@@ -46,11 +50,11 @@ export default class ParticleEmitter {
         this.init();
     }
 
-    onRender = (fftData) => {
+    onRender = (fftData, normFFTData) => {
         const delta = clock.getDelta();
         const time = clock.getElapsedTime();
         this.calculateNextFrame(time % 10000, delta);
-        this.updateFFTs(fftData);
+        this.updateFFTs(normFFTData);
     }
 
     onAdd = (scene) => {
@@ -69,10 +73,10 @@ export default class ParticleEmitter {
         //calculation shader
         this.dataMaterial = new THREE.ShaderMaterial({
             vertexShader: BasicVertexShader.shader,
-            fragmentShader: DataFragmentShader.shader,
+            fragmentShader: this.visualization.dataFragmentShader,
             uniforms: {
-                texture: new THREE.Uniform(this.createStartTexture()),
-                fftTexture: new THREE.Uniform(this.createStartFftTexture()),
+                texture: new THREE.Uniform(this.visualization.createStartTexture(256)),
+                fftTexture: new THREE.Uniform(this.fftTexture),
                 time: new THREE.Uniform(0.0),
                 deltaTime: new THREE.Uniform(0.0)
             }
@@ -90,10 +94,7 @@ export default class ParticleEmitter {
         this.currentIndex = 1-this.currentIndex;
         
         this.dataMaterial.uniforms.texture.value = this.getCurrentTarget().texture;
-        this.dataMaterial.uniforms.texture.needsUpdate = true;
-        
-        this.particles.material.uniforms.positionTexture.value = this.getCurrentTarget().texture;
-        this.particles.material.uniforms.positionTexture.needsUpdate = true;
+        this.particles.material.uniforms.dataTexture.value = this.getCurrentTarget().texture;
     }
     
     createParticles() {
@@ -102,24 +103,28 @@ export default class ParticleEmitter {
         var dataTextureUV = new Float32Array(256*256*2);
         for (var x = 0; x < 256; x++) {
             for (var y = 0; y < 256; y++) {
-                vertices[(x*256+y)*3+0] = x-128;
+                vertices[(x*256+y)*3+0] = 0;
                 vertices[(x*256+y)*3+1] = 0;
-                vertices[(x*256+y)*3+2] = y-128;
+                vertices[(x*256+y)*3+2] = 0;
                 
-                dataTextureUV[(x*256+y)*2+0] = x/256.0;
-                dataTextureUV[(x*256+y)*2+1] = y/256.0;
+                dataTextureUV[(x*256+y)*2+0] = (x+0.5)/256.0;
+                dataTextureUV[(x*256+y)*2+1] = (y+0.5)/256.0;
             }
         }
         particleGeometry.addAttribute('position', new THREE.BufferAttribute( vertices, 3 ));
         particleGeometry.addAttribute('dataTextureUV', new THREE.BufferAttribute( dataTextureUV, 2 ));
         
         var material = new THREE.ShaderMaterial({
-            vertexShader: ParticleVertexShader.shader,
-            fragmentShader: ParticleFragmentShader.shader,
+            vertexShader: this.visualization.particleVertexShader,
+            fragmentShader: this.visualization.particleFragmentShader,
             uniforms: {
-                positionTexture: new THREE.Uniform(this.dataTextures[0].texture),
-                fftTexture: new THREE.Uniform(this.createStartFftTexture())
-            }
+                dataTexture: new THREE.Uniform(this.dataTextures[0].texture),
+                fftTexture: new THREE.Uniform(this.fftTexture)
+            },
+            blending: THREE.CustomBlending,
+            blendSrc: THREE.OneFactor,
+            transparent: true,
+            depthWrite: false
         }); 
         
         return new THREE.Points(particleGeometry, material);
@@ -127,30 +132,18 @@ export default class ParticleEmitter {
     
     calculateNextFrame(time, deltaTime) {
         this.dataMaterial.uniforms.time.value = time;
-        this.dataMaterial.uniforms.time.needsUpdate = true;
         this.dataMaterial.uniforms.deltaTime.value = deltaTime;
-        this.dataMaterial.uniforms.deltaTime.needsUpdate = true;
         
         this.render(this.dataMaterial, this.getNextTarget());
         this.swapTextures();
     }
     
     updateFFTs(fftData) {
-        var convertedData = new Float32Array(4096*4);
         for (var i in fftData) {
-            convertedData[i*4] = fftData[i];
+            this.fftTexture.image.data[i*4] = fftData[i];
         }
-        // out with the old
-        this.dataMaterial.uniforms.fftTexture.value.dispose();
         
-        // in with the new
-        var texture = new THREE.DataTexture( convertedData, 4096, 1, THREE.RGBAFormat, THREE.FloatType );
-        texture.needsUpdate = true;
-        this.dataMaterial.uniforms.fftTexture.value = texture;
-        this.dataMaterial.uniforms.fftTexture.needsUpdate = true;
-        
-        this.particles.material.uniforms.fftTexture.value = texture;
-        this.particles.material.uniforms.fftTexture.needsUpdate = true;
+        this.fftTexture.needsUpdate = true;
     }
     
     render(material, dst) {
@@ -168,27 +161,11 @@ export default class ParticleEmitter {
         });
     }
     
-    createStartTexture() {
-        var data = new Float32Array(256*256*4);
-        for (var x = 0; x < 256; x++) {
-            for (var y = 0; y < 256; y++) {
-                data[(x*256+y)*4+0] = 0;
-                data[(x*256+y)*4+1] = 0;
-                data[(x*256+y)*4+2] = 0;
-                // fft index
-                data[(x*256+y)*4+3] = 1-Math.sqrt(Math.pow( (128-x)/128.0, 2)+Math.pow((128-y)/128.0, 2))/1.41;
-            }
-        }
-        
-        var texture = new THREE.DataTexture( data, 256, 256, THREE.RGBAFormat, THREE.FloatType );
-        texture.needsUpdate = true;
-        
-        return texture;
-    }
-    
     createStartFftTexture() {
         var data = new Float32Array(4096*4);
         var texture = new THREE.DataTexture( data, 4096, 1, THREE.RGBAFormat, THREE.FloatType );
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
         texture.needsUpdate = true;
         return texture;
     }
