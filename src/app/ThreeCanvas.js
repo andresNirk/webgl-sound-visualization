@@ -28,6 +28,7 @@ export default class ThreeCanvas {
         this.controls.autoRotate = true;
 
         this.addViz();
+		this.addbackground();
         this.addResizeListener();
         this.addLights();
         this.addStats(debug);
@@ -55,7 +56,23 @@ export default class ThreeCanvas {
         defaultViz.onAdd(this.scene);
         this.currentViz = defaultViz;
     }
-
+	
+	addbackground= () => {
+		var starsGeometry = new THREE.Geometry();
+		for ( var i = 0; i < 5000; i ++ ) {
+			var star = new THREE.Vector3();
+			star.x = THREE.Math.randFloatSpread( 2500 );
+			star.y = THREE.Math.randFloatSpread( 2500 );
+			star.z = THREE.Math.randFloatSpread( 2500 );
+			//nearby stars that would get in the way are not added
+			if(Math.abs(star.x)+Math.abs(star.y)+Math.abs(star.z)>350){
+				starsGeometry.vertices.push( star );
+			}
+		}
+		var starsMaterial = new THREE.PointsMaterial( { color: 0x888888} );
+		var starField = new THREE.Points( starsGeometry, starsMaterial );
+		this.scene.add( starField );
+	}
     addStats = (debugging) => {
         stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         if (debugging) {
