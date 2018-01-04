@@ -35,6 +35,7 @@ export default class AudioSource {
     static MUSIC = MUSIC;
 
     constructor() {
+        this.setupTransport();
         this.constructSources();
         this.setSource(MIC);
         this.fftSize = FFT_SIZE;
@@ -61,10 +62,16 @@ export default class AudioSource {
             return false;
         }
         this.currentSource.play();
+        Tone.Transport.emit("sourceStart");
         return true;
     }
 
-    stop = () => this.currentSource.stop();
+    stop = () => {
+        this.currentSource.stop();
+        Tone.Transport.emit("sourceStop");
+    };
+
+    pause = () => this.currentSource.pause();
 
     firstSong = () => songs[0];
 
@@ -79,25 +86,47 @@ export default class AudioSource {
         return this.currentSource;
     }
 
-    loadSong = (song) => {
+    loadSong = (song, cb) => {
+        const restart = Tone.State.Started === Tone.Transport.state;
+        this.stop();
         const { name, fileName } = song;
-        return this.sources[MUSIC].node.load(`https://firebasestorage.googleapis.com/v0/b/protor-3203e.appspot.com/o/visualizer%2Fsongs%2F${fileName}?alt=media`)
-            .then(() => {
-                console.log(`Current song set to ${name} : ${fileName}`);
-                return Promise.resolve();
-            })
-            .catch(() => {
-                return Promise.reject(new Error(`Could not load the song ${name}`));
-            });
+        if (!this.songBuffers.has(name)) {
+            this.waitingForAdd = true;
+            this.songBuffers.add(
+                name,
+                `https://firebasestorage.googleapis.com/v0/b/protor-3203e.appspot.com/o/visualizer%2Fsongs%2F${fileName}?alt=media`,
+                () => {
+                    if (this.waitingForAdd) {
+                        this.sources[MUSIC].node.buffer = this.songBuffers.get(name);
+                        console.log(`Current song set to ${name} : ${fileName}`);
+                    }
+                    cb && cb(this.songBuffers.loaded);
+                }
+            );
+        } else {
+            this.waitingForAdd = false;
+            this.sources[MUSIC].node.buffer = this.songBuffers.get(name);
+            console.log(`Current song set to ${name} : ${fileName}`);
+            cb && cb(this.songBuffers.loaded);
+            if (restart) window.setTimeout(() => this.play(), 100);
+        }
+    }
+
+    onSeekProgress = (toProgress) => {
+        const duration = this.sources[AudioSource.MUSIC].node.buffer.duration;
+        Tone.Transport.seconds = toProgress * duration;
     }
 
     constructSources = () => {
+        this.songBuffers = new Tone.Buffers();
         const playerSource = {};
         const micSource = {};
         playerSource.node = new Tone.Player({}).toMaster();
+        playerSource.node.sync().start();
         playerSource.name = MUSIC;
-        playerSource.play = () => playerSource.node.start();
-        playerSource.stop = () => playerSource.node.stop();
+        playerSource.play = () => Tone.Transport.start();
+        playerSource.stop = () => Tone.Transport.stop();
+        playerSource.pause = () => Tone.Transport.pause();
         playerSource.ready = () => {
             if (!playerSource.node.loaded) {
                 console.log("Set correct file name");
@@ -110,11 +139,25 @@ export default class AudioSource {
         micSource.name = MIC;
         micSource.play = () => micSource.node.open();
         micSource.stop = () => micSource.node.close();
+        micSource.pause = () => micSource.node.close();
         micSource.ready = () => true;
         micSource.FFT = null;
 
         this.sources[MUSIC] = playerSource;
         this.sources[MIC] = micSource;
+    }
+
+    setupTransport = () => {
+        Tone.Transport.scheduleRepeat(() => {
+            const seconds = Tone.Transport.seconds;
+            const duration = this.sources[AudioSource.MUSIC].node.buffer.duration;
+            if (seconds > duration) {
+                this.stop();
+            } else {
+                Tone.Transport.emit("songProgressUpdate", seconds / duration, seconds, duration);
+            }
+        }, 0.1);
+        Tone.Transport.on("progressSeek", this.onSeekProgress);
     }
 
     sources = {};

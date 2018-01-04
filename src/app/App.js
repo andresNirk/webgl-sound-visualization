@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import DisGui           from "src/app/DisGui";
-import PlayerControls   from "src/app/PlayerControls";
-import ThreeCanvas      from "src/app/ThreeCanvas";
-import AudioSource      from "src/app/AudioSource";
+import DisGui               from "src/app/DisGui";
+import PlayerControls       from "src/app/PlayerControls";
+import ThreeCanvas          from "src/app/ThreeCanvas";
+import AudioSource          from "src/app/AudioSource";
+import Tone                 from "tone";
 
 const audioSource = new AudioSource();
 
@@ -12,15 +13,25 @@ export default class App extends Component {
         this.tcanvas = new ThreeCanvas(audioSource);
 
         const defaultSong = audioSource.firstSong();
-        audioSource.loadSong(defaultSong);
+        audioSource.loadSong(defaultSong, loaded => this.setState({ loading: !loaded }));
 
         this.state = {
-            loading: false,
+            loading: true,
             playing: false,
             currentSource: audioSource.currentSource,
             currentSong: defaultSong,
             currentVisualization: this.tcanvas.currentViz,
         };
+    }
+
+    componentDidMount() {
+        Tone.Transport.on("sourceStop", this.onSourceStopped);
+        Tone.Transport.on("sourceStart", this.onSourceStarted);
+    }
+
+    componentWillUnmount() {
+        Tone.Transport.off("sourceStop", this.onSourceStopped);
+        Tone.Transport.off("sourceStart", this.onSourceStarted);
     }
 
     render() {
@@ -52,6 +63,7 @@ export default class App extends Component {
                     onStop={this.onStop}
                     onSourceChanged={this.onSourceChanged}
                     onLoadSong={(name) => this.onLoadSong(name)}
+                    audioSource={audioSource}
                 />
             </div>
         );
@@ -62,13 +74,20 @@ export default class App extends Component {
     }
 
     onPlay = () => {
-        const canPlay = audioSource.play();
-        this.setState({ playing: canPlay });
+        audioSource.play();
     }
 
     onStop = () => {
-        audioSource.stop();
+        audioSource.pause();
         this.setState({ playing: false });
+    }
+
+    onSourceStopped = () => {
+        this.setState({ playing: false });
+    }
+
+    onSourceStarted = () => {
+        this.setState({ playing: true });
     }
 
     onSourceChanged = (micOrMusic) => {
@@ -83,11 +102,8 @@ export default class App extends Component {
 
     onLoadSong = (songName) => {
         const s = audioSource.getSong(songName);
-        const lastSong = this.state.currentSong;
         this.setState({ currentSong: s, loading: true });
-        audioSource.loadSong(s)
-            .then(() => this.setState({ loading: false }))
-            .catch(() => this.setState({ loading: false, currentSong: lastSong }));
+        audioSource.loadSong(s, loaded => this.setState({ loading: !loaded }));
     }
 
     onVisualizationChanged = (vizName) => {
