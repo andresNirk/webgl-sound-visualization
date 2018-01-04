@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import DisGui           from "src/app/DisGui";
+import PlayerControls   from "src/app/PlayerControls";
 import ThreeCanvas      from "src/app/ThreeCanvas";
 import AudioSource      from "src/app/AudioSource";
 
@@ -41,6 +42,17 @@ export default class App extends Component {
                     onLogarithmicChanged={this.onLogarithmicChanged}
                     onLoadSong={(name) => this.onLoadSong(name)}
                 />
+                <PlayerControls
+                    playing={this.state.playing}
+                    loading={this.state.loading}
+                    currentSource={this.state.currentSource}
+                    currentSong={this.state.currentSong}
+                    songNames={audioSource.getSongNames()}
+                    onPlay={this.onPlay}
+                    onStop={this.onStop}
+                    onSourceChanged={this.onSourceChanged}
+                    onLoadSong={(name) => this.onLoadSong(name)}
+                />
             </div>
         );
     }
@@ -72,8 +84,7 @@ export default class App extends Component {
     onLoadSong = (songName) => {
         const s = audioSource.getSong(songName);
         const lastSong = this.state.currentSong;
-        this.setState({ currentSong: s });
-        this.setState({ loading: true });
+        this.setState({ currentSong: s, loading: true });
         audioSource.loadSong(s)
             .then(() => this.setState({ loading: false }))
             .catch(() => this.setState({ loading: false, currentSong: lastSong }));

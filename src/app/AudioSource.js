@@ -100,7 +100,7 @@ export default class AudioSource {
         playerSource.stop = () => playerSource.node.stop();
         playerSource.ready = () => {
             if (!playerSource.node.loaded) {
-                console.log("Set correct file name that is in ../songs/ folder");
+                console.log("Set correct file name");
             }
             return playerSource.node.loaded;
         };
