@@ -18,6 +18,7 @@ export default class App extends Component {
         this.state = {
             loading: true,
             playing: false,
+            muted: false,
             currentSource: audioSource.currentSource,
             currentSong: defaultSong,
             currentVisualization: this.tcanvas.currentViz,
@@ -56,11 +57,13 @@ export default class App extends Component {
                 <PlayerControls
                     playing={this.state.playing}
                     loading={this.state.loading}
+                    muted={this.state.muted}
                     currentSource={this.state.currentSource}
                     currentSong={this.state.currentSong}
                     songNames={audioSource.getSongNames()}
                     onPlay={this.onPlay}
                     onStop={this.onStop}
+                    onMute={this.onMute}
                     onSourceChanged={this.onSourceChanged}
                     onLoadSong={(name) => this.onLoadSong(name)}
                     audioSource={audioSource}
@@ -80,6 +83,12 @@ export default class App extends Component {
     onStop = () => {
         audioSource.pause();
         this.setState({ playing: false });
+    }
+
+    onMute = () => {
+        const muted = !this.state.muted;
+        audioSource.currentSource.mute(muted);
+        this.setState({ muted });
     }
 
     onSourceStopped = () => {

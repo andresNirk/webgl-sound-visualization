@@ -127,6 +127,7 @@ export default class AudioSource {
         playerSource.play = () => Tone.Transport.start();
         playerSource.stop = () => Tone.Transport.stop();
         playerSource.pause = () => Tone.Transport.pause();
+        playerSource.mute = (muted) => { playerSource.node.mute = muted; };
         playerSource.ready = () => {
             if (!playerSource.node.loaded) {
                 console.log("Set correct file name");

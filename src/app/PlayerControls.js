@@ -59,11 +59,13 @@ export default class PlayerControls extends Component {
         const {
             playing,
             loading,
+            muted,
             currentSource,
             songNames,
             currentSong,
             onPlay,
             onStop,
+            onMute,
             onSourceChanged,
             onLoadSong,
         } = this.props;
@@ -100,7 +102,11 @@ export default class PlayerControls extends Component {
                     </div>
                     <div style={styles.controls}>
                         <div>
-                            <MaterialIcon name="volume_mute" disabled={isMic} />
+                            <MaterialIcon
+                                name={muted ? "volume_off" : "volume_up"}
+                                disabled={isMic}
+                                onClick={onMute}
+                            />
                         </div>
                         <div style={{ display: "flex" }}>
                             <MaterialIcon
