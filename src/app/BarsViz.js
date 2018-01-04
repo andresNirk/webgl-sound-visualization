@@ -41,9 +41,11 @@ export default class BarsViz {
     }
 
     onRemove = (scene : any) => {
-        this.barsGeometry.forEach(bar => {
-            scene.remove(bar);
-        });
+        if (null != scene) {
+            this.barsGeometry.forEach(bar => {
+                scene.remove(bar);
+            });
+        }
     }
 
     updateBars = (fftValues : Float32Array, fftValuesNormalized : Float32Array) => {
