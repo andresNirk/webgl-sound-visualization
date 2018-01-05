@@ -50,12 +50,23 @@ const Drums505 = new Tone.Sampler({
     "baseUrl": "https://tonejs.github.io/examples/audio/505/",
 }).toMaster();
 
+const Synth = new Tone.MonoSynth({
+    "oscillator": {
+        "type": "sine",
+    },
+    "envelope": {
+        "attack": 0.1,
+    },
+}).toMaster();
+
 export default class Sampler {
     static piano = Salamander;
     static drums505 = Drums505;
+    static synth = Synth;
     static instruments = [
         Salamander,
         Drums505,
+        Synth,
     ];
 }
 
