@@ -1,6 +1,8 @@
 
 import Tone from "tone";
 
+import Sampler from "src/app/Sampler";
+
 const MIC = "mic";
 const MUSIC = "music";
 
@@ -35,25 +37,16 @@ export default class AudioSource {
     static MUSIC = MUSIC;
 
     constructor() {
+        this.fftSize = FFT_SIZE;
+        this.FFT = new Tone.FFT(this.fftSize);
         this.setupTransport();
         this.constructSources();
         this.setSource(MIC);
-        this.fftSize = FFT_SIZE;
-        this.connectFft(this.fftSize);
         this._uintBuffer = new Uint8Array(this.fftSize);
     }
 
-    connectFft(fftSize) {
-        const micFFT = new Tone.FFT(fftSize);
-        const musicFFT = new Tone.FFT(fftSize);
-        this.sources[MIC].FFT = micFFT;
-        this.sources[MUSIC].FFT = musicFFT;
-        this.sources[MIC].node.connect(micFFT);
-        this.sources[MUSIC].node.connect(musicFFT);
-    }
-
     getValues = () => {
-        this.currentSource.FFT.input.input.getByteFrequencyData(this._uintBuffer);
+        this.FFT.input.input.getByteFrequencyData(this._uintBuffer);
         return Float32Array.from(this._uintBuffer, v => v / 255.0);
     }
 
@@ -146,6 +139,9 @@ export default class AudioSource {
 
         this.sources[MUSIC] = playerSource;
         this.sources[MIC] = micSource;
+        playerSource.node.connect(this.FFT);
+        micSource.node.connect(this.FFT);
+        Sampler.instruments.forEach(i => i.connect(this.FFT));
     }
 
     setupTransport = () => {
@@ -157,7 +153,7 @@ export default class AudioSource {
             } else {
                 Tone.Transport.emit("songProgressUpdate", seconds / duration, seconds, duration);
             }
-        }, 0.1);
+        }, 0.5);
         Tone.Transport.on("progressSeek", this.onSeekProgress);
     }
 

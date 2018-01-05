@@ -1,9 +1,12 @@
 import React, { Component } from "react";
-import DisGui               from "src/app/DisGui";
-import PlayerControls       from "src/app/PlayerControls";
-import ThreeCanvas          from "src/app/ThreeCanvas";
-import AudioSource          from "src/app/AudioSource";
 import Tone                 from "tone";
+
+import DisGui         from "src/app/DisGui";
+import PlayerControls from "src/app/PlayerControls";
+import ThreeCanvas    from "src/app/ThreeCanvas";
+import AudioSource    from "src/app/AudioSource";
+import KeyboardInput  from "src/app/KeyboardInput";
+import Sampler        from "src/app/Sampler";
 
 const audioSource = new AudioSource();
 
@@ -23,6 +26,11 @@ export default class App extends Component {
             currentSong: defaultSong,
             currentVisualization: this.tcanvas.currentViz,
         };
+
+        KeyboardInput.addNoteListener(
+            (note) => Sampler.piano.triggerAttack(note),
+            (note) => Sampler.piano.triggerRelease(note)
+        );
     }
 
     componentDidMount() {

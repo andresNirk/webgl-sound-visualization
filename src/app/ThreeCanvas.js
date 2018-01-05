@@ -40,7 +40,7 @@ export default class ThreeCanvas {
         stats.begin();
         this.controls.update();
 
-        this.currentViz.onRender(this.audioSource.currentSource.FFT.getValue(), this.audioSource.getValues());
+        this.currentViz.onRender(this.audioSource.FFT.getValue(), this.audioSource.getValues());
         this.renderer.render(this.scene, this.camera);
 
         stats.end();
