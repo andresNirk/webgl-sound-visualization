@@ -1,11 +1,10 @@
 import React, { Component } from "react";
 import MuiThemeProvider     from "material-ui/styles/MuiThemeProvider";
-import Slider               from "material-ui/Slider";
 import IconButton           from "material-ui/IconButton";
 import CircularProgress     from "material-ui/CircularProgress";
-import Tone                 from "tone";
 
-import AudioSource      from "src/app/AudioSource";
+import AudioSource from "src/app/AudioSource";
+import SeekBar     from "src/components/SeekBar";
 
 const styles = {
     container: {
@@ -25,11 +24,6 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
     },
-    slider: {
-        flex: 1,
-        width: "100%",
-        margin: 10,
-    },
 };
 
 const MaterialIcon = ({ name, ...props }) => (
@@ -41,20 +35,6 @@ const MaterialIcon = ({ name, ...props }) => (
  * The slider appearance changes when not at the starting position.
  */
 export default class PlayerControls extends Component {
-    state = {
-        progress: 0,
-    };
-
-    componentDidMount() {
-        Tone.Transport.on("songProgressUpdate", this.onProgressUpdated);
-        Tone.Transport.on("sourceStop", this.onStop);
-    }
-
-    componentWillUnmount() {
-        Tone.Transport.off("songProgressUpdate", this.onProgressUpdated);
-        Tone.Transport.off("sourceStop", this.onStop);
-    }
-
     render() {
         const {
             playing,
@@ -89,14 +69,7 @@ export default class PlayerControls extends Component {
         return (
             <MuiThemeProvider>
                 <div style={styles.container}>
-                    <Slider
-                        ref={c => { this.slider = c; }}
-                        value={this.state.progress}
-                        style={styles.slider}
-                        sliderStyle={{ margin: 0 }}
-                        onDragStop={this.onDragStop}
-                        onChange={this.onSliderChange}
-                    />
+                    <SeekBar hidden={isMic} />
                     <div>
                         <p>{isMic ? "Current source is microphone" : `Song name: ${currentSong.name}`}</p>
                     </div>
@@ -132,22 +105,6 @@ export default class PlayerControls extends Component {
                 </div>
             </MuiThemeProvider>
         );
-    }
-
-    onSliderChange = (ev, value) => {
-        this.sliderValue = value;
-    }
-
-    onDragStop = () => {
-        Tone.Transport.emit("progressSeek", this.sliderValue);
-    }
-
-    onStop = () => {
-        this.setState({ progress: 0 });
-    }
-
-    onProgressUpdated = (progress, time, duration) => {
-        this.setState({ progress });
     }
 }
 

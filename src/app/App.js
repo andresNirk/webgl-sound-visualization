@@ -66,7 +66,6 @@ export default class App extends Component {
                     onMute={this.onMute}
                     onSourceChanged={this.onSourceChanged}
                     onLoadSong={(name) => this.onLoadSong(name)}
-                    audioSource={audioSource}
                 />
             </div>
         );
