@@ -12,11 +12,18 @@ const styles = {
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: "white",
-        padding: "0 50px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+    },
+    container2: {
+        backgroundColor: "white",
+        padding: "0px 50px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        width: "100%",
+        maxWidth: "600px",
     },
     controls: {
         display: "flex",
@@ -62,44 +69,46 @@ export default class PlayerControls extends Component {
         const previousSongAction = () => onLoadSong(previousSong);
         const nextSongAction = () => onLoadSong(nextSong);
         let playButton = <MaterialIcon onClick={playButtonAction} name={playIcon} iconStyle={{ color: recColor }} />;
-        if (loading) {
+        if (loading && !isMic) {
             playButton = <CircularProgress size={28} style={{ margin: 10 }} />;
         }
 
         return (
             <MuiThemeProvider>
                 <div style={styles.container}>
-                    <SeekBar hidden={isMic} />
-                    <div>
-                        <p>{isMic ? "Current source is microphone" : `Song name: ${currentSong.name}`}</p>
-                    </div>
-                    <div style={styles.controls}>
+                    <div style={styles.container2}>
+                        <SeekBar hidden={isMic} />
                         <div>
-                            <MaterialIcon
-                                name={muted ? "volume_off" : "volume_up"}
-                                disabled={isMic}
-                                onClick={onMute}
-                            />
+                            <p>{isMic ? "Current source is microphone" : `Song name: ${currentSong.name}`}</p>
                         </div>
-                        <div style={{ display: "flex" }}>
-                            <MaterialIcon
-                                name="skip_previous"
-                                disabled={isMic}
-                                onClick={previousSongAction}
-                            />
-                            {playButton}
-                            <MaterialIcon
-                                name="skip_next"
-                                disabled={isMic}
-                                onClick={nextSongAction}
-                            />
-                        </div>
-                        <div>
-                            <MaterialIcon
-                                name={sourceIcon}
-                                disabled={playing}
-                                onClick={sourceAction}
-                            />
+                        <div style={styles.controls}>
+                            <div>
+                                <MaterialIcon
+                                    name={muted ? "volume_off" : "volume_up"}
+                                    disabled={isMic}
+                                    onClick={onMute}
+                                />
+                            </div>
+                            <div style={{ display: "flex" }}>
+                                <MaterialIcon
+                                    name="skip_previous"
+                                    disabled={isMic}
+                                    onClick={previousSongAction}
+                                />
+                                {playButton}
+                                <MaterialIcon
+                                    name="skip_next"
+                                    disabled={isMic}
+                                    onClick={nextSongAction}
+                                />
+                            </div>
+                            <div>
+                                <MaterialIcon
+                                    name={sourceIcon}
+                                    disabled={playing}
+                                    onClick={sourceAction}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
