@@ -46,28 +46,40 @@ void main() {
         vec4 previousPosition = texture2D(texture, uv);
         vec4 previousSpeed = texture2D(texture, uv+vec2(0.0, 0.25));
 
-        float fftValue = texture2D(fftTexture, vec2(previousPosition.a, 0.5) ).r;
+        float fftPosition = abs(dot(normalize(previousPosition.xyz), vec3(0.0, 1.0, 0.0)));
+        float fftValue = abs(texture2D(fftTexture, vec2(fftPosition, 0.5) ).r);
         
         vec4 newPosition = previousPosition;
+
+        if (length(previousPosition.xyz) < 100.0) {
+            newPosition.xyz = normalize(newPosition.xyz)*100.0;
+        }
+
+        if (length(previousPosition.xyz) < fftValue*200.0+100.0) {
+            newPosition.xyz = normalize(previousPosition.xyz)*(fftValue*200.0+100.0);
+        }
     
         newPosition.xyz += previousSpeed.xyz*deltaTime;
-        newPosition.xyz += noise3(previousPosition.xyz*0.1)*deltaTime*30.0;
-        //if (length(previousPosition.xyz) > 100.0) {
-        //    previousPosition.xyz = vec3(0.0, 0.0, 0.0);
-        //}
         gl_FragColor = newPosition;
 
     } else if (uv.y < 0.5) {
         
         vec4 previousPosition = texture2D(texture, uv+vec2(0.0, -0.25));
         vec4 previousSpeed = texture2D(texture, uv);
-        previousSpeed.xyz += noise3(previousPosition.xyz*0.1)*deltaTime;
-        
 
-        previousSpeed.xyz -= previousPosition.xyz*deltaTime*0.01;
-
-        float fftValue = texture2D(fftTexture, vec2(previousPosition.a, 0.5) ).r;
+        float fftPosition = abs(dot(normalize(previousPosition.xyz), vec3(0.0, 1.0, 0.0)));
+        float fftValue = abs(texture2D(fftTexture, vec2(fftPosition, 0.5) ).r);
         
+        if (length(previousPosition.xyz) < 100.0) {
+            previousSpeed.xyz = vec3(0.0, 0.0, 0.0);
+        }
+        if (length(previousPosition.xyz) < fftValue*200.0+100.0) {
+            previousSpeed.xyz = (normalize(previousPosition.xyz)*(fftValue*200.0+100.0)-previousPosition.xyz);
+        }
+
+        previousSpeed.xyz *= 1.0-(deltaTime*0.15);
+        previousSpeed.xyz += noise3(previousPosition.xyz*0.1)*deltaTime*10.0;
+        previousSpeed.xyz -= previousPosition.xyz*deltaTime*0.1*(1.0+previousPosition.a);
 
         gl_FragColor = previousSpeed;
 
@@ -97,9 +109,10 @@ varying vec2 fragmentDataTextureUV;
 void main() {
     vec4 dataPosition = texture2D(dataTexture, dataTextureUV );
 
-    vec3 modifiedPosition = dataPosition.xyz; // position +
+    float fftPosition = abs(dot(normalize(dataPosition.xyz), vec3(0.0, 1.0, 0.0)));
+    float fftValue = abs(texture2D(fftTexture, vec2(fftPosition, 0.5) ).r);
 
-    float fftValue = 1.0-abs(texture2D(fftTexture, vec2(dataPosition.a, 0.5) ).r);
+    vec3 modifiedPosition = dataPosition.xyz; //+ normalize(dataPosition.xyz)*fftValue*100.0;
 
     fragmentDataTextureUV = dataTextureUV;
     pos = position;
@@ -153,7 +166,8 @@ void main() {
     vec4 dataMisc = texture2D(dataTexture, fragmentDataTextureUV+vec2(0.0, 0.5));
     vec4 dataMisc2 = texture2D(dataTexture, fragmentDataTextureUV+vec2(0.0, 0.75));
 
-    float fftValue = abs(texture2D(fftTexture, vec2(dataPosition.a, 0.5) ).r);
+    float fftPosition = abs(dot(normalize(dataPosition.xyz), vec3(0.0, 1.0, 0.0)));
+    float fftValue = abs(texture2D(fftTexture, vec2(fftPosition, 0.5) ).r);
 
     //gl_FragColor = vec4( abs(fftValue), abs(dataSpeed.y)/10.0, 1.0-abs(fftValue), 0.0);
     //gl_FragColor = vec4( dataSpeed.xyz+vec3(0.5, 0.5, 0.5), 0.0);
@@ -173,11 +187,11 @@ function createStartTexture(particleTextureSize) {
 
         var j = i*4;
         // position
-        data[j+0] = (Math.random()-0.5)*2*50;
-        data[j+1] = (Math.random()-0.5)*2*50;
-        data[j+2] = (Math.random()-0.5)*2*50;
-        // fft
-        data[j+3] = Math.pow(w, 3.0);
+        data[j+0] = (Math.random()-0.5)*2*50*3;
+        data[j+1] = (Math.random()-0.5)*2*50*3;
+        data[j+2] = (Math.random()-0.5)*2*50*3;
+        // gravity strength
+        data[j+3] = w;
         
         // speed
         j += particleAmount*4;
@@ -211,4 +225,4 @@ exports.dataFragmentShader = dataFragmentShader;
 exports.particleVertexShader = particleVertexShader;
 exports.particleFragmentShader = particleFragmentShader;
 exports.createStartTexture = createStartTexture;
-exports.NAME = 'Particle Visualization (non-music)';
+exports.NAME = 'Sphere Visualization';

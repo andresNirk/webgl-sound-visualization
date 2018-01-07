@@ -51,10 +51,12 @@ export default class ThreeCanvas {
         const defaultViz = new ParticleEmitter(this.renderer, ParticleEmitter.CircleVisualization);
         const secondViz = new ParticleEmitter(this.renderer, ParticleEmitter.ParticleVisualization);
         const cakeViz = new ParticleEmitter(this.renderer, ParticleEmitter.CakeVisualization);
+        const sphereViz = new ParticleEmitter(this.renderer, ParticleEmitter.SphereVisualization);
         this.visualizations = [
             defaultViz,
             secondViz,
             cakeViz,
+            sphereViz,
             new BarsViz(this.audioSource.fftSize),
         ];
         defaultViz.onAdd(this.scene);
