@@ -6,27 +6,29 @@ import Sampler from "src/app/Sampler";
 const MIC = "mic";
 const MUSIC = "music";
 
+const firebaseFile = (fileName) => `https://firebasestorage.googleapis.com/v0/b/protor-3203e.appspot.com/o/visualizer%2Fsongs%2F${fileName}?alt=media`;
+
 // MUSIC FROM https://www.bensound.com
 const songs = [
     {
         name: "Summer",
-        fileName: "bensound-summer.mp3",
+        fileName: firebaseFile("bensound-summer.mp3"),
     },
     {
         name: "Dubstep",
-        fileName: "bensound-dubstep.mp3",
+        fileName: firebaseFile("bensound-dubstep.mp3"),
     },
     {
         name: "House",
-        fileName: "bensound-house.mp3",
+        fileName: firebaseFile("bensound-house.mp3"),
     },
     {
         name: "Moose",
-        fileName: "bensound-moose.mp3",
+        fileName: firebaseFile("bensound-moose.mp3"),
     },
     {
         name: "PopDance",
-        fileName: "bensound-popdance.mp3",
+        fileName: firebaseFile("bensound-popdance.mp3"),
     },
 ];
 
@@ -73,6 +75,7 @@ export default class AudioSource {
     getSong = (songName) => songs.find(song => song.name === songName);
 
     getSongNames = () => songs.map(s => s.name);
+    getSongs = () => songs;
 
     setSource = (micOrMusic) => {
         this.currentSource = this.sources[micOrMusic];
@@ -83,24 +86,28 @@ export default class AudioSource {
         const restart = Tone.State.Started === Tone.Transport.state;
         this.stop();
         const { name, fileName } = song;
+        this.currentSong = song;
         if (!this.songBuffers.has(name)) {
-            this.waitingForAdd = true;
+            if (!songs.find(file => name === file.name)) {
+                songs.push(song);
+            }
             this.songBuffers.add(
                 name,
-                `https://firebasestorage.googleapis.com/v0/b/protor-3203e.appspot.com/o/visualizer%2Fsongs%2F${fileName}?alt=media`,
+                fileName,
                 () => {
-                    if (this.waitingForAdd) {
+                    this.loadedSongs[song.name] = true;
+                    if (this.currentSong === song) {
                         this.sources[MUSIC].node.buffer = this.songBuffers.get(name);
                         console.log(`Current song set to ${name} : ${fileName}`);
+                        if (restart) window.setTimeout(() => this.play(), 100);
                     }
-                    cb && cb(this.songBuffers.loaded);
+                    cb && cb(!!this.loadedSongs[song.name]);
                 }
             );
         } else {
-            this.waitingForAdd = false;
             this.sources[MUSIC].node.buffer = this.songBuffers.get(name);
             console.log(`Current song set to ${name} : ${fileName}`);
-            cb && cb(this.songBuffers.loaded);
+            cb && cb(!!this.loadedSongs[song.name]);
             if (restart) window.setTimeout(() => this.play(), 100);
         }
     }
@@ -123,7 +130,7 @@ export default class AudioSource {
         playerSource.mute = (muted) => { playerSource.node.mute = muted; };
         playerSource.ready = () => {
             if (!playerSource.node.loaded) {
-                console.log("Set correct file name");
+                console.log("Player not ready yet");
             }
             return playerSource.node.loaded;
         };
@@ -158,5 +165,7 @@ export default class AudioSource {
     }
 
     sources = {};
+    loadedSongs = {};
+    currentSong;
 }
 

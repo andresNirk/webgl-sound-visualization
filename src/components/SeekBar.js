@@ -1,3 +1,5 @@
+// @flow
+
 import React, { Component } from "react";
 import Slider               from "material-ui/Slider";
 import Tone                 from "tone";
@@ -10,7 +12,7 @@ const styles = {
     },
 };
 
-export default class SeekBar extends Component {
+export default class SeekBar extends Component<{ hidden : boolean }, { progress : number } > {
     state = {
         progress: 0,
     };
@@ -47,7 +49,7 @@ export default class SeekBar extends Component {
         );
     }
 
-    onSliderChange = (ev, value) => {
+    onSliderChange = (ev : any, value : number) => {
         this.sliderValue = value;
     }
 
@@ -59,8 +61,10 @@ export default class SeekBar extends Component {
         this.setState({ progress: 0 });
     }
 
-    onProgressUpdated = (progress, time, duration) => {
+    onProgressUpdated = (progress : number, time : number, duration : number) => {
         this.setState({ progress });
     }
+
+    sliderValue : number;
 }
 
