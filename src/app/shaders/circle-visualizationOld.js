@@ -13,7 +13,7 @@ void main() {
 
         vec4 previousPosition = texture2D(texture, uv);
         float fftValue = texture2D(fftTexture, vec2(previousPosition.a, 0.5) ).r;
-        previousPosition.y = fftValue*200.0;
+        previousPosition.y = fftValue*100.0;
         gl_FragColor = previousPosition;
 
     } else if (uv.y < 0.5) {
@@ -24,7 +24,7 @@ void main() {
         float fftValue = texture2D(fftTexture, vec2(previousPosition.a, 0.5) ).r;
         
         vec4 currentPosition = previousPosition;
-        currentPosition.y = fftValue*200.0;
+        currentPosition.y = fftValue*100.0;
 
         gl_FragColor = currentPosition-previousPosition;
 
@@ -62,7 +62,7 @@ void main() {
     pos = position;
 
     gl_Position = projectionMatrix*modelViewMatrix*vec4(modifiedPosition, 1.0);
-    gl_PointSize = 2.0;
+    gl_PointSize = 1.0;
 }
 `;
 
@@ -92,19 +92,19 @@ function createStartTexture(particleTextureSize) {
     var particleAmount = particleTextureSize*particleTextureSize/4;
     for (var i = 0; i < particleAmount; i++) {
         var w = i / particleAmount;
-        var angle = Math.cos(36)*w*i;
+        var angle = 6.28*w;
 
         var j = i*4;
         // position
-        data[j+0] = Math.sin(angle)*100*w;
+        data[j+0] = Math.sin(angle)*100;
         data[j+1] = 0;
-        data[j+2] = Math.cos(angle)*100*w;
+        data[j+2] = Math.cos(angle)*100;
         // fft
         data[j+3] = Math.pow(w, 3.0);
         
         // speed
         j += particleAmount*4;
-        data[j+0] = 5;
+        data[j+0] = 0;
         data[j+1] = 0;
         data[j+2] = 0;
         data[j+3] = 0;
