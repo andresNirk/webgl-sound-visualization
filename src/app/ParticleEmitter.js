@@ -5,6 +5,7 @@ import BasicFragmentShader from "src/app/shaders/basic-fragment-shader.js";
 
 import CircleVisualization from "src/app/shaders/circle-visualization.js";
 import ParticleVisualization from "src/app/shaders/particle-visualization.js";
+import CakeVisualization from "src/app/shaders/cake-visualization.js";
 
 const clock = new THREE.Clock();
 
@@ -13,6 +14,7 @@ export default class ParticleEmitter {
     
     static CircleVisualization = CircleVisualization;
     static ParticleVisualization = ParticleVisualization;
+    static CakeVisualization = CakeVisualization;
 
     constructor(renderer, visualization) {
         
@@ -24,7 +26,7 @@ export default class ParticleEmitter {
         this.name = visualization.NAME;
         this.type = ParticleEmitter.TYPE;
         
-        this.particleTextureSize = 256*4;
+        this.particleTextureSize = 256;
         this.particleAmount = this.particleTextureSize*this.particleTextureSize/4;
 
         this.visualization = visualization;
