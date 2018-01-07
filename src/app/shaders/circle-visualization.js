@@ -134,3 +134,4 @@ exports.dataFragmentShader = dataFragmentShader;
 exports.particleVertexShader = particleVertexShader;
 exports.particleFragmentShader = particleFragmentShader;
 exports.createStartTexture = createStartTexture;
+exports.NAME = 'Circle Visualization';

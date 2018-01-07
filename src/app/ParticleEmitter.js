@@ -4,26 +4,30 @@ import BasicVertexShader from "src/app/shaders/basic-vertex-shader.js";
 import BasicFragmentShader from "src/app/shaders/basic-fragment-shader.js";
 
 import CircleVisualization from "src/app/shaders/circle-visualization.js";
+import ParticleVisualization from "src/app/shaders/particle-visualization.js";
 
 const clock = new THREE.Clock();
 
 export default class ParticleEmitter {
     static TYPE = "particleEmitter";
-    static NAME = "Particle Emitter";
+    
+    static CircleVisualization = CircleVisualization;
+    static ParticleVisualization = ParticleVisualization;
 
-    constructor(renderer) {
+    constructor(renderer, visualization) {
         
         // render setup
         this.scene = new THREE.Scene();
         this.renderer = renderer;
         this.camera = new THREE.Camera();
-        this.name = ParticleEmitter.NAME;
+        
+        this.name = visualization.NAME;
         this.type = ParticleEmitter.TYPE;
         
-        this.particleTextureSize = 256;
+        this.particleTextureSize = 256*4;
         this.particleAmount = this.particleTextureSize*this.particleTextureSize/4;
 
-        this.visualization = CircleVisualization;
+        this.visualization = visualization;
         
         // double buffering
         this.currentIndex = 0;
@@ -62,6 +66,9 @@ export default class ParticleEmitter {
     }
 
     onAdd = (scene) => {
+        this.render(this.basicMaterial, this.dataTextures[0]);
+        this.render(this.basicMaterial, this.dataTextures[1]);
+        clock.getDelta();
         scene.add(this.particles);
     }
 

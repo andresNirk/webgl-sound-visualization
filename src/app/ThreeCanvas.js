@@ -48,9 +48,11 @@ export default class ThreeCanvas {
     }
 
     addViz = () => {
-        const defaultViz = new ParticleEmitter(this.renderer);
+        const defaultViz = new ParticleEmitter(this.renderer, ParticleEmitter.CircleVisualization);
+        const secondViz = new ParticleEmitter(this.renderer, ParticleEmitter.ParticleVisualization);
         this.visualizations = [
             defaultViz,
+            secondViz,
             new BarsViz(this.audioSource.fftSize),
         ];
         defaultViz.onAdd(this.scene);
