@@ -46,7 +46,8 @@ void main() {
         vec4 previousPosition = texture2D(texture, uv);
         vec4 previousSpeed = texture2D(texture, uv+vec2(0.0, 0.25));
 
-        float fftPosition = abs(dot(normalize(previousPosition.xyz), vec3(0.0, 1.0, 0.0)));
+        vec3 direction = normalize(noise3(vec3(time*0.5,0.0,0.0)));
+        float fftPosition = abs(dot(normalize(previousPosition.xyz), direction));
         float fftValue = abs(texture2D(fftTexture, vec2(fftPosition, 0.5) ).r);
         
         vec4 newPosition = previousPosition;
@@ -67,7 +68,8 @@ void main() {
         vec4 previousPosition = texture2D(texture, uv+vec2(0.0, -0.25));
         vec4 previousSpeed = texture2D(texture, uv);
 
-        float fftPosition = abs(dot(normalize(previousPosition.xyz), vec3(0.0, 1.0, 0.0)));
+        vec3 direction = normalize(noise3(vec3(time*0.5,0.0,0.0)));
+        float fftPosition = abs(dot(normalize(previousPosition.xyz), direction));
         float fftValue = abs(texture2D(fftTexture, vec2(fftPosition, 0.5) ).r);
         
         if (length(previousPosition.xyz) < 100.0) {
@@ -78,8 +80,8 @@ void main() {
         }
 
         previousSpeed.xyz *= 1.0-(deltaTime*0.15);
-        previousSpeed.xyz += noise3(previousPosition.xyz*0.1)*deltaTime*10.0;
-        previousSpeed.xyz -= previousPosition.xyz*deltaTime*0.1*(1.0+previousPosition.a);
+        previousSpeed.xyz += noise3(previousPosition.xyz*0.1)*deltaTime*500.0;
+        previousSpeed.xyz -= previousPosition.xyz*deltaTime*0.5*(1.0+previousPosition.a);
 
         gl_FragColor = previousSpeed;
 
