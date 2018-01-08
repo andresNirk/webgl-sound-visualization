@@ -81,7 +81,7 @@ void main() {
 
         previousSpeed.xyz *= 1.0-(deltaTime*0.15);
         previousSpeed.xyz += noise3(previousPosition.xyz*0.1)*deltaTime*500.0;
-        previousSpeed.xyz -= previousPosition.xyz*deltaTime*0.5*(1.0+previousPosition.a);
+        previousSpeed.xyz -= previousPosition.xyz*deltaTime*0.5*(1.0+previousPosition.a*0.1);
 
         gl_FragColor = previousSpeed;
 
@@ -174,7 +174,7 @@ void main() {
     //gl_FragColor = vec4( abs(fftValue), abs(dataSpeed.y)/10.0, 1.0-abs(fftValue), 0.0);
     //gl_FragColor = vec4( dataSpeed.xyz+vec3(0.5, 0.5, 0.5), 0.0);
 
-    gl_FragColor = vec4( abs(noise3(dataPosition.xyz*0.1)), 0.0);
+    gl_FragColor = vec4( abs(noise3(dataPosition.xyz*0.1))*1.0, 0.0);
 
 }
 `;
