@@ -172,7 +172,7 @@ void main() {
     //gl_FragColor = vec4( abs(fftValue), abs(dataSpeed.y)/10.0, 1.0-abs(fftValue), 0.0);
     //gl_FragColor = vec4( dataSpeed.xyz+vec3(0.5, 0.5, 0.5), 0.0);
 
-    gl_FragColor = vec4( abs(noise3(dataPosition.xyz*0.01)+dataSpeed.w)*1.0, 0.0);
+    gl_FragColor = vec4( abs(noise3(dataPosition.xyz*0.01))*(0.3+dataSpeed.w)*3.0, 0.0);
 
 }
 `;
