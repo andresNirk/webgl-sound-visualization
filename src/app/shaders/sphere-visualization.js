@@ -82,6 +82,7 @@ void main() {
         previousSpeed.xyz *= 1.0-(deltaTime*0.15);
         previousSpeed.xyz += noise3(previousPosition.xyz*0.1)*deltaTime*500.0;
         previousSpeed.xyz -= previousPosition.xyz*deltaTime*0.5*(1.0+previousPosition.a*0.1);
+        previousSpeed.w = fftValue;
 
         gl_FragColor = previousSpeed;
 
@@ -168,13 +169,10 @@ void main() {
     vec4 dataMisc = texture2D(dataTexture, fragmentDataTextureUV+vec2(0.0, 0.5));
     vec4 dataMisc2 = texture2D(dataTexture, fragmentDataTextureUV+vec2(0.0, 0.75));
 
-    float fftPosition = abs(dot(normalize(dataPosition.xyz), vec3(0.0, 1.0, 0.0)));
-    float fftValue = abs(texture2D(fftTexture, vec2(fftPosition, 0.5) ).r);
-
     //gl_FragColor = vec4( abs(fftValue), abs(dataSpeed.y)/10.0, 1.0-abs(fftValue), 0.0);
     //gl_FragColor = vec4( dataSpeed.xyz+vec3(0.5, 0.5, 0.5), 0.0);
 
-    gl_FragColor = vec4( abs(noise3(dataPosition.xyz*0.1))*1.0, 0.0);
+    gl_FragColor = vec4( abs(noise3(dataPosition.xyz*0.01)+dataSpeed.w)*1.0, 0.0);
 
 }
 `;
