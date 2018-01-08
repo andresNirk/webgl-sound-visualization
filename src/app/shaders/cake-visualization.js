@@ -62,7 +62,7 @@ void main() {
     pos = position;
 
     gl_Position = projectionMatrix*modelViewMatrix*vec4(modifiedPosition, 1.0);
-    gl_PointSize = 2.0;
+    gl_PointSize = 1.0;
 }
 `;
 
