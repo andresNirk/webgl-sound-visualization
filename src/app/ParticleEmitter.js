@@ -7,6 +7,7 @@ import CircleVisualization from "src/app/shaders/circle-visualization.js";
 import ParticleVisualization from "src/app/shaders/particle-visualization.js";
 import CakeVisualization from "src/app/shaders/cake-visualization.js";
 import SphereVisualization from "src/app/shaders/sphere-visualization.js";
+import SphereVisualization2 from "src/app/shaders/sphere2-visualization.js";
 
 const clock = new THREE.Clock();
 
@@ -17,6 +18,7 @@ export default class ParticleEmitter {
     static ParticleVisualization = ParticleVisualization;
     static CakeVisualization = CakeVisualization;
     static SphereVisualization = SphereVisualization;
+    static SphereVisualization2 = SphereVisualization2;
 
     constructor(renderer, visualization) {
         
